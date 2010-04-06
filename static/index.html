@@ -3,19 +3,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Предлагатель друзей</title>
+    <title>До дня рождения осталось...</title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
-    <!--<script type="text/javascript" src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>-->
+    <script type="text/javascript" src="js/config.js"></script>
     <script type="text/javascript" src="http://connect.rapira.mail.ru/js/loader.js"></script>
   </head>
   <body>
-    <h1>Предлагатель друзей</h1>
+    <h1>До дня рождения осталось...</h1>
+    <p>Узнайте сколько осталось до вашего дня рождения и ваших друзей.</p>
     <script type="text/javascript">
       //<![CDATA[
       $(document).ready(function() {
-        var MAILRU_CONNECT_APP_ID = 424182;
-        var MAILRU_CONNECT_PRIVATE_KEY = '4ba4bc651968943ce6fe04267b8e9dfd';
-
         if (window.console == undefined || console.log == undefined) {
           window.console = {'log': function() {} };
         }
@@ -32,115 +30,12 @@
           };
         }
 
-        function friendsSuggester(mailruapi) {
-          var alreadyExistingFriends = {};
-          var suggestedFriends = {};
-          var suggestData = {};
-          var workInProgress = false;
-          var friendsToProcess = 0;
-          var friendsProcessed = 0;
-
-          var listeners = {};
-          var triggerEvent = function(eventType, eventArgs) {
-            if (listeners[eventType]) {
-              eventArgs = $.makeArray(arguments).slice(1);
-              $.each(listeners[eventType], function(key, cb) {
-                cb.apply(this, eventArgs);
-              });
-            }
-          };
-          this.bindEvent = function(eventType, callback) {
-            if (listeners[eventType] === undefined) {
-              listeners[eventType] = [];
-            }
-            listeners[eventType].push(callback);
-          };
-
-          var usersListToUsersById = function(usersList) {
-            var result = {};
-            $.each(usersList, function(key, userInfo) {
-              result[userInfo.uid] = userInfo;
-            });
-            return result;
-          };
-
-          var finalizeSuggestions = function(friendsList) {
-            if ($.isEmptyObject(friendsList)) {
-              result = [];
-            } else {
-              sortable = [];
-              for (attr in friendsList) {
-                sortable.push(friendsList[attr]);
-              }
-              result = sortable.sort(function(info1, info2) {
-                if (info1._is_friend_of.length > info2._is_friend_of.length) {
-                  return -1;
-                } else if (info1._is_friend_of.length > info2._is_friend_of.length) {
-                  return 1;
-                } else {
-                  return 0;
-                }
-              });
-            }
-            workInProgress = false;
-            triggerEvent('finish', result);
-            return result;
-          };
-
-          var onFriendFriendsLoaded = function(originalUserId, friendsList) {
-            ++friendsProcessed;
-            $.each(friendsList, function(key, friendInfo) {
-              var uid = friendInfo.uid;
-              if (!alreadyExistingFriends[uid]) {
-                if (suggestData[uid]) {
-                  ++suggestData[uid];
-                  suggestedFriends[uid]['_is_friend_of'].push(originalUserId);
-                } else {
-                  suggestData[uid] = 1;
-                  suggestedFriends[uid] = friendInfo;
-                  suggestedFriends[uid]['_is_friend_of'] = [originalUserId];
-                }
-              }
-            });
-            if (friendsProcessed == friendsToProcess) {
-              suggestedFriends = usersListToUsersById(finalizeSuggestions(suggestedFriends));
-            }
-          };
-
-          var loadFriendsInfo = function(callback, uid) {
-            return mailruapi.common.friends.getExtended(bind(this, callback, uid), uid);
-          }
-
-          var onPersonFriendsLoaded = function(originalUserId, friendsList) {
-            friendsToProcess = friendsList.length;
-            alreadyExistingFriends = usersListToUsersById(friendsList);
-            if (friendsToProcess) {
-              $.each(friendsList, function(key, friendInfo) {
-                loadFriendsInfo(onFriendFriendsLoaded, friendInfo.uid);
-              });
-            } else {
-              finalizeSuggestions(suggestedFriends);
-            }
-          };
-
-          this.suggestFriends = function(uid) {
-            if (workInProgress) {
-              console.log('Suggestion process is already started!');
-            } else {
-              workInProgress = true;
-              triggerEvent('start');
-              loadFriendsInfo(onPersonFriendsLoaded, uid);
-            }
-          };
-
-          this.getAlreadyExistingFriends = function() {
-            return alreadyExistingFriends;
-          };
-        }
-
         function modalizer() {
           var holder = $('<div>').addClass('modalizer').appendTo($('body'));
           var isActive = false;
+          var div = null;
+          var width = 300;
+          var calls = 0;
 
           if (!modalizer.prototype.initialized) {
             modalizer.prototype.initialized = true;
@@ -150,33 +45,71 @@
           this.show = function(content) {
             if (isActive == false) {
               isActive = true;
-              var width = 300;
-              if (content) {
-                $('<div>').addClass('modalizer_window').css({
-                  'left': ($(document).width() - width) / 2 + 'px',
-                  'width': width + 'px'
-                }).appendTo(holder).append(content);
-              }
               $('<div>').addClass('overlay').css({
                 'width': $(document).width() + 'px',
                 'height': $(document).height() + 'px'
               }).appendTo(holder);
             }
+            if (content && !div) {
+              div = $('<div>').addClass('modalizer_window').css({
+                'left': ($(document).width() - width) / 2 + 'px',
+                'width': width + 'px'
+              }).appendTo(holder).append(content);
+            } else if (content && div) {
+              div.empty().append(content);
+            } else if (div && !content) {
+              div.remove();
+              div = null;
+            }
+            ++calls;
           };
 
           this.hide = function() {
-            holder.empty();
-            isActive = false;
+            --calls;
+            if (calls == 0) {
+              holder.empty();
+              isActive = false;
+            }
           }
         }
 
-        function suggestedFriendsView(mailruapi, suggester) {
-          var m = new modalizer();
+        var daysLeftToBirthday = function(birthday) {
+          var now = new Date();
+          var now = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          var s = birthday.split('.');
+          var date = new Date(s[2], s[1]-1, s[0]);
+          var nextBirthday = new Date(now.getFullYear(), date.getMonth(), date.getDate());
+          if (nextBirthday - now < 0) {
+            nextBirthday = new Date(now.getFullYear()+1, date.getMonth(), date.getDate());
+          }
+          return Math.floor((nextBirthday - now) / (60 * 60 * 24 * 1000));
+        }
 
-          var onFriendsSuggestionsLoaded = function(holder, suggestions) {
-            console.log('onFriendsSuggestionsLoaded', suggestions);
+        function friendsView(mailruapi, modalizer) {
+          var onFriendsLoaded = function(holder, friends) {
+            console.log('friendsView::onFriendsLoaded', friends);
             holder.empty();
-            if (suggestions.length) {
+            if (friends.length) {
+              $.each(friends, function(key, userInfo) {
+                friends[key]._daysLeftToBD = userInfo.birthday ? daysLeftToBirthday(userInfo.birthday) : null;
+              });
+              friends = friends.sort(function(info1, info2) {
+                if (info1._daysLeftToBD === null && info2._daysLeftToBD !== null) {
+                  return 1;
+                } else if (info1._daysLeftToBD === null && info2._daysLeftToBD === null) {
+                  return 0;
+                } else if (info1._daysLeftToBD !== null && info2._daysLeftToBD === null) {
+                  return -1;
+                } else if (info1._daysLeftToBD < info2._daysLeftToBD) {
+                  return -1;
+                } else if (info1._daysLeftToBD > info2._daysLeftToBD) {
+                  return 1;
+                } else {
+                  return 0;
+                }
+              });
+
+              $('<h2>').text('Ближайшие дни рождения').appendTo(holder);
               var table = $('<table>');
               table.append($('<thead>').append($('<tr>').append(
                 $('<th>').text('#')
@@ -185,20 +118,11 @@
               ).append(
                 $('<th>').text('Имя')
               ).append(
-                $('<th>').text('Пол')
+                $('<th>').text('До дня рождения осталось')
               ).append(
-                $('<th>').text('Общие друзья')
+                $('<th>').text('ДР')
               )));
-              alreadyExistingFriends = suggester.getAlreadyExistingFriends();
-              $.each(suggestions, function(key, userInfo) {
-                var commonFriends = $('<p>');
-                $.each(userInfo._is_friend_of, function(key, friendOfId) {
-                  fr = alreadyExistingFriends[friendOfId];
-                  if (key != 0) {
-                    commonFriends.append(', ');
-                  }
-                  commonFriends.append($('<a>').attr({'href': fr.link}).text(fr.first_name + " " + fr.last_name));
-                });
+              $.each(friends, function(key, userInfo) {
                 table.append($('<tr>').append(
                   $('<td>').text(key+1)
                 ).append(
@@ -206,22 +130,47 @@
                 ).append(
                   $('<td>').append($('<a>').attr({'href': userInfo.link}).text(userInfo.first_name + " " + userInfo.last_name))
                 ).append(
-                  $('<td>').text(userInfo.sex ? 'девочка' : "мальчик")
+                  $('<td>').text(userInfo._daysLeftToBD)
                 ).append(
-                  $('<td>').append(commonFriends)
+                  $('<td>').text(userInfo.birthday)
                 ));
               });
               holder.append(table);
             } else {
-              holder.append($('<p>').text('Не найдено ни одного кандидата в друзья :('));
+              holder.append($('<p>').text('Не найдено ни одного друга :('));
             }
-            m.hide();
+            modalizer.hide();
           };
 
-          this.showFriendSuggestions = function(holder, uid) {
-            m.show('Идет загрузка списка друзей...');
-            suggester.bindEvent('finish', bind(this, onFriendsSuggestionsLoaded, holder));
-            suggester.suggestFriends(uid);
+          this.showFriends = function(holder, uid) {
+            modalizer.show('Идет загрузка списка друзей...');
+            mailruapi.common.friends.getExtended(bind(this, onFriendsLoaded, holder), uid);
+          };
+        }
+
+        function userView(mailruapi, modalizer) {
+          var onDataLoaded = function(holder, userInfo) {
+            userInfo = userInfo[0];
+            console.log('userView::onDataLoaded', userInfo);
+            holder.empty();
+            $('<h2>').text('Вы').appendTo(holder);
+            var ul = $('<ul>');
+            ul.append(
+              $('<li>').append($('<img>').attr({'src': userInfo.pic_small, 'alt': ''}))
+            ).append(
+              $('<li>').append($('<a>').attr({'href': userInfo.link}).text(userInfo.first_name + " " + userInfo.last_name))
+            ).append(
+              $('<li>').text(userInfo.birthday)
+            ).append(
+              $('<li>').text(userInfo.birthday ? 'До Вашего дня рождения осталось: ' + daysLeftToBirthday(userInfo.birthday) : '')
+            );
+            holder.append(ul);
+            modalizer.hide();
+          };
+
+          this.showUserInfo = function(holder, uid) {
+            modalizer.show('Идет загрузка информации о пользователе #' + uid + '...');
+            mailruapi.common.users.getInfo(bind(this, onDataLoaded, holder), uid);
           };
         }
 
@@ -243,7 +192,7 @@
         };
 
         mailru.loader.require('api', function() {
-          mailru.connect.init(MAILRU_CONNECT_APP_ID, MAILRU_CONNECT_PRIVATE_KEY);
+          mailru.connect.init(window.connect_demo_site_config.app_id, window.connect_demo_site_config.private_key);
           mailru.events.listen(mailru.connect.events.login, function(session){
             window.location.reload();
           });
@@ -261,18 +210,26 @@
             } else {
               var api = mailru;
               //var api = mailruApiMock;
-              var suggester = new friendsSuggester(api);
-              var view = new suggestedFriendsView(api, suggester);
-              var holder = $('<div>').addClass('suggestions_holder').insertAfter('h1');
-              view.showFriendSuggestions(holder, result.vid);
+              var m = new modalizer();
 
-              var holder = $('<div class="connect_holder">').insertAfter($('h1'));
+              var holder = $('<div class="connect_holder">').appendTo('body');
               holder.append($('<a href="#">logout</a>').click(function() {
                 mailru.connect.logout();
                 return false;
               }));
+
+              // show user
+              var view = new userView(api, m);
+              var holder = $('<div>').addClass('user_info_holder').appendTo('body');
+              view.showUserInfo(holder, result.vid);
+
+              // show friends
+              var view = new friendsView(api, m);
+              var holder = $('<div>').addClass('suggestions_holder').appendTo('body');
+              view.showFriends(holder, result.vid);
             }
           });
+
         });
       });
       //]]>
