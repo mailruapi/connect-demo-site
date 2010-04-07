@@ -165,6 +165,9 @@
               $('<li>').text(userInfo.birthday ? 'До Вашего дня рождения осталось: ' + daysLeftToBirthday(userInfo.birthday) : '')
             );
             holder.append(ul);
+            $('<button>').text('насрать в Что Нового').click(function() {
+                mailru.common.stream.publish(userInfo.birthday ? 'Дней до моего дня рождения: ' + daysLeftToBirthday(userInfo.birthday) : 'Пыщ-пыщ! У меня не указан день рождения.', 'http://demotivators.ru/media/posters/73183_voenkomat.jpg');
+            }).appendTo(holder);
             modalizer.hide();
           };
 
