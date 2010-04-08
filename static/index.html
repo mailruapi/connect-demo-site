@@ -1,241 +1,230 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>До дня рождения осталось...</title>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
-    <script type="text/javascript" src="js/config.js"></script>
-    <script type="text/javascript" src="http://connect.rapira.mail.ru/js/loader.js"></script>
-  </head>
-  <body>
-    <h1>До дня рождения осталось...</h1>
-    <p>Узнайте сколько осталось до вашего дня рождения и ваших друзей.</p>
-    <script type="text/javascript">
-      //<![CDATA[
-      $(document).ready(function() {
-        if (window.console == undefined || console.log == undefined) {
-          window.console = {'log': function() {} };
-        }
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>До дня рождения осталось...</title>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+        <script type="text/javascript" src="js/config.js"></script>
+        <script type="text/javascript" src="http://connect.rapira.mail.ru/js/loader.js"></script>
+    </head>
+    <body>
+        <h1>До дня рождения осталось...</h1>
+        <p>Узнайте сколько осталось до вашего дня рождения и ваших друзей.</p>
+        <script type="text/javascript">
+            //<![CDATA[
+            $(document).ready(function() {
+                /**
+                 * Helper class to display lightbox-like modal window
+                 */
+                function modalizer() {
+                    var container = $('<div>').addClass('modalizer').appendTo($('body'));
+                    var isActive = false;
+                    var div = null;
+                    var width = 400;
+                    var calls = 0;
 
-        function bind(object, func, args) {
-          return function() {
-            if (object === true)
-              object = this;
-            func = typeof func === "string" ? object[func] : func;
-            args = typeof args !== "array" ? [args] : args;
+                    if (!modalizer.prototype.initialized) {
+                        modalizer.prototype.initialized = true;
+                        $('<style>').attr({'type': 'text/css'}).appendTo($('head')).text(".modalizer_window { position: absolute; top: 100px; left: 100px; border: 3px solid silver; background: white; z-index: 100; padding: 20px 10px; text-align: center; } .overlay { position: absolute; top: 0; left: 0; background: black; z-index: 90; opacity: 0.7; }");
+                    }
 
-            return func.apply(object, Array.prototype.slice.call(args || [])
-                .concat(Array.prototype.slice.call(arguments)));
-          };
-        }
+                    this.show = function(content) {
+                        if (isActive == false) {
+                            isActive = true;
+                            $('<div>').addClass('overlay').css({
+                                'width': '100%', //$(document).width() + 'px',
+                                'height': '100%', //$(document).height() + 'px'
+                            }).appendTo(container);
+                        }
+                        if (content && !div) {
+                            div = $('<div>').addClass('modalizer_window').css({
+                                'left': ($(document).width() - width) / 2 + 'px',
+                                'width': width + 'px'
+                            }).appendTo(container).append(content);
+                        } else if (content && div) {
+                            div.empty().append(content);
+                        } else if (div && !content) {
+                            div.remove();
+                            div = null;
+                        }
+                        ++calls;
+                    };
 
-        function modalizer() {
-          var holder = $('<div>').addClass('modalizer').appendTo($('body'));
-          var isActive = false;
-          var div = null;
-          var width = 300;
-          var calls = 0;
-
-          if (!modalizer.prototype.initialized) {
-            modalizer.prototype.initialized = true;
-            $('<style>').attr({'type': 'text/css'}).appendTo($('head')).text(".modalizer_window { position: absolute; top: 100px; left: 100px; border: 3px solid silver; background: white; z-index: 100; padding: 10px; } .overlay { position: absolute; top: 0; left: 0; background: black; z-index: 90; opacity: 0.7; }");
-          }
-
-          this.show = function(content) {
-            if (isActive == false) {
-              isActive = true;
-              $('<div>').addClass('overlay').css({
-                'width': $(document).width() + 'px',
-                'height': $(document).height() + 'px'
-              }).appendTo(holder);
-            }
-            if (content && !div) {
-              div = $('<div>').addClass('modalizer_window').css({
-                'left': ($(document).width() - width) / 2 + 'px',
-                'width': width + 'px'
-              }).appendTo(holder).append(content);
-            } else if (content && div) {
-              div.empty().append(content);
-            } else if (div && !content) {
-              div.remove();
-              div = null;
-            }
-            ++calls;
-          };
-
-          this.hide = function() {
-            --calls;
-            if (calls == 0) {
-              holder.empty();
-              isActive = false;
-            }
-          }
-        }
-
-        var daysLeftToBirthday = function(birthday) {
-          var now = new Date();
-          var now = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          var s = birthday.split('.');
-          var date = new Date(s[2], s[1]-1, s[0]);
-          var nextBirthday = new Date(now.getFullYear(), date.getMonth(), date.getDate());
-          if (nextBirthday - now < 0) {
-            nextBirthday = new Date(now.getFullYear()+1, date.getMonth(), date.getDate());
-          }
-          return Math.floor((nextBirthday - now) / (60 * 60 * 24 * 1000));
-        }
-
-        function friendsView(mailruapi, modalizer) {
-          var onFriendsLoaded = function(holder, friends) {
-            console.log('friendsView::onFriendsLoaded', friends);
-            holder.empty();
-            if (friends.length) {
-              $.each(friends, function(key, userInfo) {
-                friends[key]._daysLeftToBD = userInfo.birthday ? daysLeftToBirthday(userInfo.birthday) : null;
-              });
-              friends = friends.sort(function(info1, info2) {
-                if (info1._daysLeftToBD === null && info2._daysLeftToBD !== null) {
-                  return 1;
-                } else if (info1._daysLeftToBD === null && info2._daysLeftToBD === null) {
-                  return 0;
-                } else if (info1._daysLeftToBD !== null && info2._daysLeftToBD === null) {
-                  return -1;
-                } else if (info1._daysLeftToBD < info2._daysLeftToBD) {
-                  return -1;
-                } else if (info1._daysLeftToBD > info2._daysLeftToBD) {
-                  return 1;
-                } else {
-                  return 0;
+                    this.hide = function() {
+                        --calls;
+                        if (calls == 0) {
+                            container.empty();
+                            isActive = false;
+                        }
+                    }
                 }
-              });
 
-              $('<h2>').text('Ближайшие дни рождения').appendTo(holder);
-              var table = $('<table>');
-              table.append($('<thead>').append($('<tr>').append(
-                $('<th>').text('#')
-              ).append(
-                $('<th>')
-              ).append(
-                $('<th>').text('Имя')
-              ).append(
-                $('<th>').text('До дня рождения осталось')
-              ).append(
-                $('<th>').text('ДР')
-              )));
-              $.each(friends, function(key, userInfo) {
-                table.append($('<tr>').append(
-                  $('<td>').text(key+1)
-                ).append(
-                  $('<td>').append($('<img>').attr({'src': userInfo.pic_small, 'alt': ''}))
-                ).append(
-                  $('<td>').append($('<a>').attr({'href': userInfo.link}).text(userInfo.first_name + " " + userInfo.last_name))
-                ).append(
-                  $('<td>').text(userInfo._daysLeftToBD)
-                ).append(
-                  $('<td>').text(userInfo.birthday)
-                ));
-              });
-              holder.append(table);
-            } else {
-              holder.append($('<p>').text('Не найдено ни одного друга :('));
-            }
-            modalizer.hide();
-          };
+                var globalModalizer = new modalizer();
+                globalModalizer.show('Инициализация...');
 
-          this.showFriends = function(holder, uid) {
-            modalizer.show('Идет загрузка списка друзей...');
-            mailruapi.common.friends.getExtended(bind(this, onFriendsLoaded, holder), uid);
-          };
-        }
-
-        function userView(mailruapi, modalizer) {
-          var onDataLoaded = function(holder, userInfo) {
-            userInfo = userInfo[0];
-            console.log('userView::onDataLoaded', userInfo);
-            holder.empty();
-            $('<h2>').text('Вы').appendTo(holder);
-            var ul = $('<ul>');
-            ul.append(
-              $('<li>').append($('<img>').attr({'src': userInfo.pic_small, 'alt': ''}))
-            ).append(
-              $('<li>').append($('<a>').attr({'href': userInfo.link}).text(userInfo.first_name + " " + userInfo.last_name))
-            ).append(
-              $('<li>').text(userInfo.birthday)
-            ).append(
-              $('<li>').text(userInfo.birthday ? 'До Вашего дня рождения осталось: ' + daysLeftToBirthday(userInfo.birthday) : '')
-            );
-            holder.append(ul);
-            $('<button>').text('насрать в Что Нового').click(function() {
-                mailru.common.stream.publish(userInfo.birthday ? 'Дней до моего дня рождения: ' + daysLeftToBirthday(userInfo.birthday) : 'Пыщ-пыщ! У меня не указан день рождения.', 'http://demotivators.ru/media/posters/73183_voenkomat.jpg');
-            }).appendTo(holder);
-            modalizer.hide();
-          };
-
-          this.showUserInfo = function(holder, uid) {
-            modalizer.show('Идет загрузка информации о пользователе #' + uid + '...');
-            mailruapi.common.users.getInfo(bind(this, onDataLoaded, holder), uid);
-          };
-        }
-
-        var mailruApiMock = {
-          "common": {
-            "friends": {
-              "test_data": {},
-              "getExtended": function(callback, uid) {
-                if ($.isEmptyObject(this.test_data)) {
-                  this.test_data["1324730981306483817"] = eval('[ { "uid": "15410773191172635989", "first_name": "Евгений", "last_name": "Маслов", "nick": "maslov", "sex": 0, "birthday": "15.02.1980", "pic": "http://avt.appsmail.ru/mail/emaslov/_avatar", "pic_small": "http://avt.appsmail.ru/mail/emaslov/_avatarsmall", "pic_big": "http://avt.appsmail.ru/mail/emaslov/_avatarbig", "link": "http://my.mail.ru/mail/emaslov/", "referer_type": "", "referer_id": "", "location": { "country": { "name": "Россия", "id": "24" }, "city": { "name": "Москва", "id": "25" }, "region": { "name": "Москва", "id": "999999" } } }, { "uid": "13933776335523073697", "first_name": "Анатолий", "last_name": "Орлов", "nick": "orel_42", "sex": 0, "birthday": "12.11.1983", "pic": "http://avt.appsmail.ru/mail/tolik123/_avatar", "pic_small": "http://avt.appsmail.ru/mail/tolik123/_avatarsmall", "pic_big": "http://avt.appsmail.ru/mail/tolik123/_avatarbig", "link": "http://my.mail.ru/mail/tolik123/", "referer_type": "", "referer_id": "", "location": "" }, { "uid": "114253301908144582271", "first_name": "Наташа", "last_name": "Ласточкина", "nick": "lastochka", "sex": 1, "birthday": "21.10.1989", "pic": "http://avt.appsmail.ru/mail/natashka/_avatar", "pic_small": "http://avt.appsmail.ru/mail/natashka/_avatarsmall", "pic_big": "http://avt.appsmail.ru/mail/natashka/_avatarbig", "link": "http://my.mail.ru/mail/natashka/", "referer_type": "", "referer_id": "", "location": { "country": { "name": "Россия", "id": "24" }, "city": { "name": "Жуковский", "id": "1719" }, "region": { "name": "Московская обл.", "id": "293" } } } ]');
-                  this.test_data["15410773191172635989"] = eval('[ { "uid": "154107731911726359891", "first_name": "Евгений", "last_name": "Маслов", "nick": "maslov", "sex": 0, "birthday": "15.02.1980", "pic": "http://avt.appsmail.ru/mail/emaslov/_avatar", "pic_small": "http://avt.appsmail.ru/mail/emaslov/_avatarsmall", "pic_big": "http://avt.appsmail.ru/mail/emaslov/_avatarbig", "link": "http://my.mail.ru/mail/emaslov/", "referer_type": "", "referer_id": "", "location": { "country": { "name": "Россия", "id": "24" }, "city": { "name": "Москва", "id": "25" }, "region": { "name": "Москва", "id": "999999" } } }, { "uid": "139337763355230736971", "first_name": "Анатолий", "last_name": "Орлов", "nick": "orel_42", "sex": 0, "birthday": "12.11.1983", "pic": "http://avt.appsmail.ru/mail/tolik123/_avatar", "pic_small": "http://avt.appsmail.ru/mail/tolik123/_avatarsmall", "pic_big": "http://avt.appsmail.ru/mail/tolik123/_avatarbig", "link": "http://my.mail.ru/mail/tolik123/", "referer_type": "", "referer_id": "", "location": "" } ]');
-                  this.test_data["13933776335523073697"] = eval('[ { "uid": "139337763355230736971", "first_name": "Анатолий", "last_name": "Орлов", "nick": "orel_42", "sex": 0, "birthday": "12.11.1983", "pic": "http://avt.appsmail.ru/mail/tolik123/_avatar", "pic_small": "http://avt.appsmail.ru/mail/tolik123/_avatarsmall", "pic_big": "http://avt.appsmail.ru/mail/tolik123/_avatarbig", "link": "http://my.mail.ru/mail/tolik123/", "referer_type": "", "referer_id": "", "location": "" } ]');
-                  this.test_data["114253301908144582271"] = eval('[ { "uid": "1142533019081445822711", "first_name": "Наташа", "last_name": "Ласточкина", "nick": "lastochka", "sex": 1, "birthday": "21.10.1989", "pic": "http://avt.appsmail.ru/mail/natashka/_avatar", "pic_small": "http://avt.appsmail.ru/mail/natashka/_avatarsmall", "pic_big": "http://avt.appsmail.ru/mail/natashka/_avatarbig", "link": "http://my.mail.ru/mail/natashka/", "referer_type": "", "referer_id": "", "location": { "country": { "name": "Россия", "id": "24" }, "city": { "name": "Жуковский", "id": "1719" }, "region": { "name": "Московская обл.", "id": "293" } } } ]');
+                /**
+                 * Helper function calculates number of days left till next birthday
+                 * @param birthday string birthday in api format (dd.mm.yyyy)
+                 * @returns int
+                 */
+                var daysLeftToBirthday = function(birthday) {
+                    var now = new Date();
+                    var now = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    var s = birthday.split('.');
+                    var date = new Date(s[2], s[1]-1, s[0]);
+                    var nextBirthday = new Date(now.getFullYear(), date.getMonth(), date.getDate());
+                    if (nextBirthday - now < 0) {
+                        nextBirthday = new Date(now.getFullYear()+1, date.getMonth(), date.getDate());
+                    }
+                    return Math.floor((nextBirthday - now) / (60 * 60 * 24 * 1000));
                 }
-                callback(this.test_data[uid] ? this.test_data[uid] : []);
-              }
-            }
-          }
-        };
 
-        mailru.loader.require('api', function() {
-          mailru.connect.init(window.connect_demo_site_config.app_id, window.connect_demo_site_config.private_key);
-          mailru.events.listen(mailru.connect.events.login, function(session){
-            window.location.reload();
-          });
-          mailru.events.listen(mailru.connect.events.logout, function(){
-            window.location.reload();
-          });
-          mailru.connect.getLoginStatus(function(result) {
-            if (result.is_app_user != 1) {
-              var width = 500;
-              var m = new modalizer();
-              m.show($('<a href="#">connect</a>').click(function() {
-                mailru.connect.login();
-                return false;
-              }));
-            } else {
-              var api = mailru;
-              //var api = mailruApiMock;
-              var m = new modalizer();
+                /**
+                 * Helper class to display information about users's friends
+                 */
+                function friendsView(mailruapi, modalizer, container) {
+                    var onFriendsLoaded = function(friends) {
+                        container.empty();
+                        if (friends.length) {
+                            $.each(friends, function(key, userInfo) {
+                                friends[key]._daysLeftToBD = userInfo.birthday ? daysLeftToBirthday(userInfo.birthday) : null;
+                            });
+                            friends = friends.sort(function(info1, info2) {
+                                if (info1._daysLeftToBD === null && info2._daysLeftToBD !== null) {
+                                    return 1;
+                                } else if (info1._daysLeftToBD === null && info2._daysLeftToBD === null) {
+                                    return 0;
+                                } else if (info1._daysLeftToBD !== null && info2._daysLeftToBD === null) {
+                                    return -1;
+                                } else if (info1._daysLeftToBD < info2._daysLeftToBD) {
+                                    return -1;
+                                } else if (info1._daysLeftToBD > info2._daysLeftToBD) {
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+                            });
 
-              var holder = $('<div class="connect_holder">').appendTo('body');
-              holder.append($('<a href="#">logout</a>').click(function() {
-                mailru.connect.logout();
-                return false;
-              }));
+                            $('<h2>').text('Ближайшие дни рождения').appendTo(container);
+                            var table = $('<table>');
+                            table.append($('<thead>').append($('<tr>').append(
+                                $('<th>').text('#')
+                            ).append(
+                                $('<th>')
+                            ).append(
+                                $('<th>').text('Имя')
+                            ).append(
+                                $('<th>').text('До дня рождения осталось')
+                            ).append(
+                                $('<th>').text('ДР')
+                            )));
+                            $.each(friends, function(key, userInfo) {
+                                table.append($('<tr>').append(
+                                    $('<td>').text(key+1)
+                                ).append(
+                                    $('<td>').append($('<img>').attr({'src': userInfo.pic_small, 'alt': ''}))
+                                ).append(
+                                    $('<td>').append($('<a>').attr({'href': userInfo.link}).text(userInfo.first_name + " " + userInfo.last_name))
+                                ).append(
+                                    $('<td>').text(userInfo._daysLeftToBD)
+                                ).append(
+                                    $('<td>').text(userInfo.birthday)
+                                ));
+                            });
+                            container.append(table);
+                        } else {
+                            container.append($('<p>').text('Не найдено ни одного друга :('));
+                        }
+                        modalizer.hide();
+                    };
 
-              // show user
-              var view = new userView(api, m);
-              var holder = $('<div>').addClass('user_info_holder').appendTo('body');
-              view.showUserInfo(holder, result.vid);
+                    this.showFriends = function(uid) {
+                        modalizer.show('Идет загрузка списка друзей...');
+                        mailruapi.common.friends.getExtended(onFriendsLoaded, uid);
+                    };
+                }
 
-              // show friends
-              var view = new friendsView(api, m);
-              var holder = $('<div>').addClass('suggestions_holder').appendTo('body');
-              view.showFriends(holder, result.vid);
-            }
-          });
+                /**
+                 * Helper class to display information about user
+                 */
+                function userView(mailruapi, modalizer, container) {
+                    var onDataLoaded = function(userInfo) {
+                        userInfo = userInfo[0];
+                        container.empty();
+                        $('<h2>').text('Вы').appendTo(container);
+                        var ul = $('<ul>');
+                        ul.append(
+                            $('<li>').append($('<img>').attr({'src': userInfo.pic_small, 'alt': ''}))
+                        ).append(
+                            $('<li>').append($('<a>').attr({'href': userInfo.link}).text(userInfo.first_name + " " + userInfo.last_name))
+                        ).append(
+                            $('<li>').text(userInfo.birthday)
+                        ).append(
+                            $('<li>').text(userInfo.birthday ? 'До Вашего дня рождения осталось: ' + daysLeftToBirthday(userInfo.birthday) : '')
+                        );
+                        container.append(ul);
+                        $('<button>').text('Насрать в ленту :)').click(function() {
+                            mailru.common.stream.publish({
+                                'title': '',
+                                'text': userInfo.birthday ? 'Дней до моего дня рождения: ' + daysLeftToBirthday(userInfo.birthday) : 'Пыщ-пыщ! У меня не указан день рождения.',
+                                'imgURL': 'http://demotivators.ru/media/posters/73183_voenkomat.jpg',
+                                'actionLinks': [
+                                    {'text': 'узнать тоже', 'href': 'http://my.rapira.mail.ru/demo/'},
+                                    {'text': 'достали', 'href': 'http://example.com/2'}
+                                ]
+                            });
+                        }).appendTo(container);
+                        modalizer.hide();
+                    };
 
-        });
-      });
-      //]]>
-    </script>
-  </body>
+                    this.showUserInfo = function(uid) {
+                        modalizer.show('Идет загрузка информации о пользователе #' + uid + '...');
+                        mailruapi.common.users.getInfo(onDataLoaded, uid);
+                    };
+                }
+
+                /**
+                 * connect initialization
+                 */
+                mailru.loader.require('api', function() {
+                    mailru.connect.init(window.connect_demo_site_config.app_id, window.connect_demo_site_config.private_key);
+                    mailru.events.listen(mailru.connect.events.login, function(session){
+                        window.location.reload();
+                    });
+                    mailru.events.listen(mailru.connect.events.logout, function(){
+                        window.location.reload();
+                    });
+                    mailru.connect.getLoginStatus(function(result) {
+                        if (result.is_app_user != 1) {
+                            globalModalizer.show($('<button>вход@mail.ru</button>').click(function() {
+                                mailru.connect.login();
+                                return false;
+                            }));
+                        } else {
+                            var container = $('<div class="connect_container">').appendTo('body');
+                            container.append($('<button>Выход</button>').click(function() {
+                                mailru.connect.logout();
+                                return false;
+                            }));
+
+                            // show user
+                            var userInfoContainer = $('<div>').addClass('user_info_container').appendTo('body');
+                            var view = new userView(mailru, globalModalizer, userInfoContainer);
+                            view.showUserInfo(result.vid);
+
+                            // show friends
+                            var friendsInfoContainer = $('<div>').addClass('suggestions_container').appendTo('body');
+                            var view = new friendsView(mailru, globalModalizer, friendsInfoContainer);
+                            view.showFriends(result.vid);
+                        }
+
+                        globalModalizer.hide();
+                    });
+
+                });
+            });
+            //]]>
+        </script>
+    </body>
 </html>
