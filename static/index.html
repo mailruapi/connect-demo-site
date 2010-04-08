@@ -7,6 +7,11 @@
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
         <script type="text/javascript" src="js/config.js"></script>
         <script type="text/javascript" src="http://connect.rapira.mail.ru/js/loader.js"></script>
+        <style type="text/css">
+            .message { margin: 10px 0; border: 3px solid black; padding: 10px; }
+            .message.success { border-color: green; color: green; }
+            .message.error { border-color: red; color: red; }
+        </style>
     </head>
     <body>
         <h1>До дня рождения осталось...</h1>
@@ -167,7 +172,7 @@
                         $('<button>').text('Насрать в ленту :)').click(function() {
                             mailru.common.stream.publish({
                                 'title': userInfo.birthday ? 'Дней до моего дня рождения: ' + daysLeftToBirthday(userInfo.birthday) : 'Пыщ-пыщ! У меня не указан день рождения.',
-                                'text': userInfo.birthday ? 'Френды, готовьте подарки11' : 'Дарите подарки в любой день',
+                                'text': userInfo.birthday ? 'Френды, готовьте подарки' : 'Дарите подарки в любой день',
                                 'imgURL': 'http://demotivators.ru/media/posters/73183_voenkomat.jpg',
                                 'actionLinks': [
                                     {'text': 'узнать тоже', 'href': window.connect_demo_site_config.base_url + '#link1'},
@@ -217,6 +222,35 @@
                             var friendsInfoContainer = $('<div>').addClass('suggestions_container').appendTo('body');
                             var view = new friendsView(mailru, globalModalizer, friendsInfoContainer);
                             view.showFriends(result.vid);
+
+                            // stream publish event handling
+                            mailru.events.listen(mailru.common.events.streamPublish, function(result){
+                                var div = $('<div>').addClass('message').prependTo('body');
+                                switch (result.status) {
+                                    case 'authError':
+                                        div.addClass('error');
+                                        div.text('Ошибка авторизации');
+                                        break;
+                                    case 'cancelled':
+                                        div.addClass('error');
+                                        div.text('Отправка сообщения отменена');
+                                        break;
+                                    case 'publishSuccess':
+                                        div.addClass('success');
+                                        div.text('Сообщение в ленту Что Нового отправлено');
+                                        break;
+                                    case 'publishFail':
+                                        div.addClass('error');
+                                        div.text('Ошибка при публикации сообщения');
+                                        break;
+                                    default:
+                                        div.addClass('error');
+                                        div.text('Черт возьми, в ответ пришло незнамо что');
+                                        break;
+                                }
+                                setTimeout(function() { div.remove(); }, 5000);
+                            });
+
                         }
 
                         globalModalizer.hide();
