@@ -1,4 +1,5 @@
 window.connect_demo_site_config = {
   'app_id': '__application_id_of_your_application__',
-  'private_key': '__private_key_of_your_application__'
+  'private_key': '__private_key_of_your_application__',
+  'base_url': '__site_address_with_http_and_trailing_slash__'
 };

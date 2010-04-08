@@ -167,11 +167,11 @@
                         $('<button>').text('Насрать в ленту :)').click(function() {
                             mailru.common.stream.publish({
                                 'title': userInfo.birthday ? 'Дней до моего дня рождения: ' + daysLeftToBirthday(userInfo.birthday) : 'Пыщ-пыщ! У меня не указан день рождения.',
-                                'text': userInfo.birthday ? 'Френды, готовьте подарки' : 'Дарите подарки в любой день',
+                                'text': userInfo.birthday ? 'Френды, готовьте подарки11' : 'Дарите подарки в любой день',
                                 'imgURL': 'http://demotivators.ru/media/posters/73183_voenkomat.jpg',
                                 'actionLinks': [
-                                    {'text': 'узнать тоже', 'href': 'http://my.rapira.mail.ru/demo/'},
-                                    {'text': 'сцылко', 'href': 'http://my.rapira.mail.ru/demo/?1=2#3'}
+                                    {'text': 'узнать тоже', 'href': window.connect_demo_site_config.base_url + '#link1'},
+                                    {'text': 'сцылко', 'href': window.connect_demo_site_config.base_url + '?1=2#link2'}
                                 ]
                             });
                         }).appendTo(container);
