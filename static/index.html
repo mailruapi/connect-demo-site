@@ -6,7 +6,7 @@
         <title>До дня рождения осталось...</title>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
         <script type="text/javascript" src="js/config.js"></script>
-        <script type="text/javascript" src="http://connect.rapira.mail.ru/js/loader.js"></script>
+        <script type="text/javascript" src="http://connect.mail.ru/js/loader.js"></script>
         <style type="text/css">
             .message { margin: 10px 0; border: 3px solid black; padding: 10px; }
             .message.success { border-color: green; color: green; }
@@ -29,9 +29,22 @@
                     var width = 400;
                     var calls = 0;
 
+                    function addStyles(rule){
+                        var sheet = document.styleSheets[0],
+                            ln = (sheet.cssRules||sheet.rules).length;
+                        if (sheet.addRule) {
+                            rule = rule.match(/(.*){(.*)}/);
+                            sheet.addRule(rule[1], rule[2], ln);
+                        } else {
+                            sheet.insertRule(rule, ln);
+                        };
+                        return arguments.callee;
+                    };
+
                     if (!modalizer.prototype.initialized) {
                         modalizer.prototype.initialized = true;
-                        $('<style>').attr({'type': 'text/css'}).appendTo($('head')).text(".modalizer_window { position: absolute; top: 100px; left: 100px; border: 3px solid silver; background: white; z-index: 100; padding: 20px 10px; text-align: center; } .overlay { position: absolute; top: 0; left: 0; background: black; z-index: 90; opacity: 0.7; }");
+                        addStyles('.modalizer_window { position: absolute; top: 100px; left: 100px; border: 3px solid silver; background: white; z-index: 100; padding: 20px 10px; text-align: center; }');
+                        addStyles('.overlay { position: absolute; top: 0; left: 0; background: black; z-index: 90; opacity: 0.7; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=70)"; filter: alpha(opacity=70); }');
                     }
 
                     this.show = function(content) {
@@ -39,7 +52,7 @@
                             isActive = true;
                             $('<div>').addClass('overlay').css({
                                 'width': '100%', //$(document).width() + 'px',
-                                'height': '100%', //$(document).height() + 'px'
+                                'height': '100%' //$(document).height() + 'px'
                             }).appendTo(container);
                         }
                         if (content && !div) {
