@@ -11,6 +11,10 @@
             .message.success { border-color: green; color: green; }
             .message.error { border-color: red; color: red; }
             .permissions_container { width: 500px; margin: 20px 0; }
+
+
+            .modalizer_window { position: absolute; top: 100px; left: 100px; border: 3px solid silver; background: white; z-index: 100; padding: 20px 10px; text-align: center; }
+            .overlay { position: absolute; top: 0; left: 0; background: black; z-index: 90; filter: progid:DXImageTransform.Microsoft.Alpha(opacity=70); opacity: 0.7; }
         </style>
     </head>
     <body>
@@ -29,22 +33,8 @@
                     var width = 400;
                     var calls = 0;
 
-                    function addStyles(rule){
-                        var sheet = document.styleSheets[0],
-                            ln = (sheet.cssRules||sheet.rules).length;
-                        if (sheet.addRule) {
-                            rule = rule.match(/(.*){(.*)}/);
-                            sheet.addRule(rule[1], rule[2], ln);
-                        } else {
-                            sheet.insertRule(rule, ln);
-                        };
-                        return arguments.callee;
-                    };
-
                     if (!modalizer.prototype.initialized) {
                         modalizer.prototype.initialized = true;
-                        addStyles('.modalizer_window { position: absolute; top: 100px; left: 100px; border: 3px solid silver; background: white; z-index: 100; padding: 20px 10px; text-align: center; }');
-                        addStyles('.overlay { position: absolute; top: 0; left: 0; background: black; z-index: 90; opacity: 0.7; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=70)"; filter: alpha(opacity=70); }');
                     }
 
                     this.show = function(content) {
