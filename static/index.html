@@ -6,11 +6,11 @@
         <title>До дня рождения осталось...</title>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
         <script type="text/javascript" src="js/config.js"></script>
-        <script type="text/javascript" src="http://connect.mail.ru/js/loader.js"></script>
         <style type="text/css">
             .message { margin: 10px 0; border: 3px solid black; padding: 10px; }
             .message.success { border-color: green; color: green; }
             .message.error { border-color: red; color: red; }
+            .permissions_container { width: 500px; margin: 20px 0; }
         </style>
     </head>
     <body>
@@ -18,7 +18,7 @@
         <p>Узнайте сколько осталось до вашего дня рождения и ваших друзей.</p>
         <script type="text/javascript">
             //<![CDATA[
-            $(document).ready(function() {
+            $.getScript(window.connect_demo_site_config.library_url, function() {
                 /**
                  * Helper class to display lightbox-like modal window
                  */
@@ -225,6 +225,21 @@
                                 mailru.connect.logout();
                                 return false;
                             }));
+
+                            // permissions
+                            var permissionsContainer = $('<fieldset>').append($('<legend>').text('Привилегии')).addClass('permissions_container').appendTo('body');
+                            $('<p>Значение <tt>result.ext_perm</tt>: "<tt>' + result.ext_perm + '</tt>"</p>').appendTo(permissionsContainer);
+                            if (!result.ext_perm.match(/(^|,)widget(,|$)/)) {
+                                $('<button>').text('Запросить разрешение на виджет').click(function() {
+                                    mailru.common.users.requirePermissions('widget');
+                                }).appendTo(permissionsContainer);
+                                mailru.events.listen(mailru.common.events.requireWidgetPermissions, function(){
+                                    console.log('mailru.common.events.requireWidgetPermissions', arguments);
+                                    window.location.reload();
+                                });
+                            } else {
+                                $('<p>').text('Снимите разрешение на виджет в настройках чтобы увидеть кнопку.').appendTo(permissionsContainer);
+                            }
 
                             // show user
                             var userInfoContainer = $('<div>').addClass('user_info_container').appendTo('body');

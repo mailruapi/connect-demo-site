@@ -1,18 +1,25 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Mail.Ru Connect receiver</title>
-		<script src="http://connect.mail.ru/js/loader.js"></script>
-  </head>
-  <body>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Mail.Ru Connect receiver</title>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+        <script type="text/javascript" src="config.js"></script>
+    </head>
+    <body>
+        <!--
+            This is non standerd receiver with ability to configure scipt url.
+            For production sites please use receiver.html from documentation.
+        -->
 		<script>
-			//<![CDATA[
-			mailru.loader.require('receiver', function(){
-				mailru.receiver.init();
-			})
-			//]]>
+        //<![CDATA[
+            $.getScript(window.connect_demo_site_config.library_url, function() {
+                mailru.loader.require('receiver', function(){
+                    mailru.receiver.init();
+                });
+            });
+        //]]>
 		</script>
-  </body>
+    </body>
 </html>
