@@ -205,10 +205,9 @@
                     });
                     mailru.connect.getLoginStatus(function(result) {
                         if (result.is_app_user != 1) {
-                            globalModalizer.show($('<button>вход@mail.ru</button>').click(function() {
-                                mailru.connect.login();
-                                return false;
-                            }));
+                            globalModalizer.show($('<a>').attr({'class': 'mrc__connectButton', 'href': 'http://connect.mail.ru/connect'}).text('вход@mail.ru'));
+                            mailru.connect.initButton();
+
                         } else {
                             var container = $('<div class="connect_container">').appendTo('body');
                             container.append($('<button>Выход</button>').click(function() {
@@ -223,8 +222,7 @@
                                 $('<button>').text('Запросить разрешение на виджет').click(function() {
                                     mailru.common.users.requirePermissions('widget');
                                 }).appendTo(permissionsContainer);
-                                mailru.events.listen(mailru.common.events.requireWidgetPermissions, function(){
-                                    console.log('mailru.common.events.requireWidgetPermissions', arguments);
+                                mailru.events.listen(mailru.common.events.permissionsChange, function(){
                                     window.location.reload();
                                 });
                             } else {
