@@ -172,7 +172,7 @@
                             $('<li>').text(userInfo.birthday ? 'До Вашего дня рождения осталось: ' + daysLeftToBirthday(userInfo.birthday) : '')
                         );
                         container.append(ul);
-                        $('<button>').text('Насрать в ленту :)').click(function() {
+                        $('<button>').text('Написать в Что Нового').click(function() {
                             mailru.common.stream.publish({
                                 'title': userInfo.birthday ? 'Дней до моего дня рождения: ' + daysLeftToBirthday(userInfo.birthday) : 'Пыщ-пыщ! У меня не указан день рождения.',
                                 'text': userInfo.birthday ? 'Френды, готовьте подарки' : 'Дарите подарки в любой день',
