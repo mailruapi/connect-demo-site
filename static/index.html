@@ -201,6 +201,7 @@
                  */
                 mailru.loader.require('api', function() {
                     mailru.connect.init(window.connect_demo_site_config.app_id, window.connect_demo_site_config.private_key);
+					mailru.plugin.init();
                     mailru.events.listen(mailru.connect.events.login, function(session){
                         window.location.reload();
                     });
